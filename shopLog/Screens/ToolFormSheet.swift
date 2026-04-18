@@ -12,31 +12,24 @@ struct ToolFormSheet: View {
     var onSave: (ToolDraft) -> Void
     @Environment(\.dismiss) var dismiss
     var existingTool: ToolData?
+    @State private var hasAttemptedToSave = false
     
     var body: some View {
         NavigationStack {
-            Form {
-                TextField("Tool Name", text: $draft.name)
-                Picker("Type", selection: $draft.type) {
-                    ForEach(ToolType.allCases) { type in
-                        Text(type.displayName).tag(type)
-                    }
-                }
-                LabeledContent("Diameter (mm)") {
-                    TextField("", value: $draft.diameter, format: .number)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                }
-                Stepper("Flutes: \(draft.fluteCount)", value: $draft.fluteCount, in: 1...12)
-            }
+            ToolFormView(draft: draft, showErrors: $hasAttemptedToSave)
             .navigationTitle(existingTool != nil ? "Edit Tool" : "New Tool")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { onSave(draft); dismiss() }
-                        .disabled(draft.name.isEmpty || draft.diameter <= 0)
+                    Button("Save") {
+                        hasAttemptedToSave = true
+                        if ToolFormValidator(draft: draft).isValid {
+                            onSave(draft)
+                            dismiss()
+                        }
+                    }
                 }
             }
             .onAppear {
