@@ -15,6 +15,7 @@ struct ToolBrowserScreen: View {
     @State private var sortOrder: SortOrder = .name
     @State private var showAddSheet = false
     @State private var newDraft = ToolDraft()
+    @State private var loadState: LoadState<Void> = .idle
     
     var filteredTools: [ToolData] {
         var result = searchText.isEmpty ? store.tools
@@ -34,42 +35,67 @@ struct ToolBrowserScreen: View {
     }
     
     var body: some View {
-            ScrollView {
-                ShopLogHeader(
-                    title: "Tools",
-                    toolCount: filteredTools.count
-                )
-                
-                ToolBrowserToolBar(viewMode: $viewMode, sortOrder: $sortOrder, showFavoritesOnly: $showFavoriteOnly)
-                
-                DashboardHeader(toolData: filteredTools)
-                
-                switch viewMode {
-                case .grid:
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))]) {
-                        ForEach(filteredTools) { tool in
-                            NavigationLink(value: tool) {
-                                CompactToolCard(
-                                    tool: tool
-                                )
+            Group {
+                switch loadState {
+                case .idle, .loading:
+                    ProgressView("Loading tools...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .loaded:
+                    ScrollView {
+                        ShopLogHeader(
+                            title: "Tools",
+                            toolCount: filteredTools.count
+                        )
+                        
+                        ToolBrowserToolBar(viewMode: $viewMode, sortOrder: $sortOrder, showFavoritesOnly: $showFavoriteOnly)
+                        
+                        DashboardHeader(toolData: filteredTools)
+                        
+                        switch viewMode {
+                        case .grid:
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))]) {
+                                ForEach(filteredTools) { tool in
+                                    NavigationLink(value: tool) {
+                                        CompactToolCard(
+                                            tool: tool
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
-                            .buttonStyle(.plain)
+                            .padding()
+                        case .list:
+                            LazyVStack {
+                                ForEach(filteredTools) { tool in
+                                    NavigationLink(value: tool) {
+                                        ToolCard(
+                                            tool: tool
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding()
                         }
                     }
-                    .padding()
-                case .list:
-                    LazyVStack {
-                        ForEach(filteredTools) { tool in
-                            NavigationLink(value: tool) {
-                                ToolCard(
-                                    tool: tool
-                                )
+                case .error(let msg):
+                    ContentUnavailableView {
+                        Label("Load Failed", systemImage: "wifi.slash")
+                    } description: { Text(msg) }
+                    actions: {
+                        Button("Retry") {
+                            Task {
+                                await loadTools()
                             }
-                            .buttonStyle(.plain)
                         }
                     }
-                    .padding()
                 }
+            }
+            .task {
+                await loadTools()
+            }
+            .refreshable {
+                await loadTools()
             }
             .searchable(text: $searchText, prompt: "Search tools...")
             .sheet(isPresented: $showAddSheet) {
@@ -87,7 +113,23 @@ struct ToolBrowserScreen: View {
                         Image(systemName: "plus")
                     }
                 }
+                ToolbarItem {
+                   ExportButton()
+                }
             }
+    }
+    
+    func loadTools() async {
+        loadState = .loading
+        do {
+            let tools = try await ShopLogAPI.fetchTools()
+            store.tools = tools
+            loadState = .loaded(())
+        } catch is CancellationError {
+            // ignore
+        } catch {
+            loadState = .error(error.localizedDescription)
+        }
     }
 }
 
