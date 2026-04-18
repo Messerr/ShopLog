@@ -8,8 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var path = NavigationPath()
+    
     var body: some View {
-        ToolBrowserScreen()
+        NavigationStack(path: $path) {
+            ToolBrowserScreen()
+                .navigationDestination(for: ToolData.self) { tool in
+                    ToolDetailScreen(tool: tool)
+                }
+        }
     }
 }
 

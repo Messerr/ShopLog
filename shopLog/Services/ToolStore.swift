@@ -32,4 +32,10 @@ final class ToolStore {
     func isFavorite(_ tool: ToolData) -> Bool {
         favoriteIDs.contains(tool.id)
     }
+    
+    func updateTool(_ original: ToolData, from draft: ToolDraft) {
+        if let index = tools.firstIndex(where: { $0.id == original.id }) {
+            tools[index] = ToolData(from: draft, id: original.id, dateAdded: original.dateAdded)
+        }
+    }
 }

@@ -34,7 +34,6 @@ struct ToolBrowserScreen: View {
     }
     
     var body: some View {
-        NavigationStack {
             ScrollView {
                 ShopLogHeader(
                     title: "Tools",
@@ -48,19 +47,25 @@ struct ToolBrowserScreen: View {
                 switch viewMode {
                 case .grid:
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))]) {
-                        ForEach(filteredTools) { data in
-                            CompactToolCard(
-                                tool: data
-                            )
+                        ForEach(filteredTools) { tool in
+                            NavigationLink(value: tool) {
+                                CompactToolCard(
+                                    tool: tool
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding()
                 case .list:
                     LazyVStack {
-                        ForEach(filteredTools) { data in
-                            ToolCard(
-                                tool: data
-                            )
+                        ForEach(filteredTools) { tool in
+                            NavigationLink(value: tool) {
+                                ToolCard(
+                                    tool: tool
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding()
@@ -68,7 +73,7 @@ struct ToolBrowserScreen: View {
             }
             .searchable(text: $searchText, prompt: "Search tools...")
             .sheet(isPresented: $showAddSheet) {
-                AddToolSheet(draft: newDraft, onSave: { draft in
+                ToolFormSheet(draft: newDraft, onSave: { draft in
                     let newTool = ToolData(from: draft)
                     store.addTool(newTool)
                     newDraft = ToolDraft()
@@ -83,7 +88,6 @@ struct ToolBrowserScreen: View {
                     }
                 }
             }
-        }
     }
 }
 

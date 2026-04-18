@@ -15,6 +15,7 @@ struct ToolData: Identifiable, Hashable {
     let fluteCount: Int
     let condition: ToolCondition
     let dateAdded: Date
+    let notes: String
     
     init(
         name: String,
@@ -22,7 +23,8 @@ struct ToolData: Identifiable, Hashable {
         diameter: Double,
         fluteCount: Int,
         condition: ToolCondition,
-        dateAdded: Date
+        dateAdded: Date,
+        notes: String
     ) {
         self.name = name
         self.type = type
@@ -30,15 +32,22 @@ struct ToolData: Identifiable, Hashable {
         self.fluteCount = fluteCount
         self.condition = condition
         self.dateAdded = dateAdded
+        self.notes = notes
     }
     
-    init(from draft: ToolDraft) {
+    init(
+        from draft: ToolDraft,
+        id: UUID = UUID(),
+        dateAdded: Date = Date()
+    ) {
+        self.id = id
+        self.dateAdded = dateAdded
         self.name = draft.name
         self.type = draft.type
         self.diameter = draft.diameter
         self.fluteCount = draft.fluteCount
         self.condition = draft.condition
-        self.dateAdded = Date()
+        self.notes = draft.notes
     }
     
     static let sampleData: [ToolData] = [
@@ -48,7 +57,8 @@ struct ToolData: Identifiable, Hashable {
             diameter: 1.2,
             fluteCount: 12,
             condition: .new,
-            dateAdded: Calendar.current.date(byAdding: .month, value: -5, to: .now)!
+            dateAdded: Calendar.current.date(byAdding: .month, value: -5, to: .now)!,
+            notes: "Okay tool, but needs a new bit"
         ),
         ToolData(
             name: "Endmill",
@@ -56,7 +66,8 @@ struct ToolData: Identifiable, Hashable {
             diameter: 4.8,
             fluteCount: 10,
             condition: .fair,
-            dateAdded: Calendar.current.date(byAdding: .month, value: -3, to: .now)!
+            dateAdded: Calendar.current.date(byAdding: .month, value: -3, to: .now)!,
+            notes: "Cool tool, but needs a new bit"
         ),
         ToolData(
             name: "Holder",
@@ -64,7 +75,8 @@ struct ToolData: Identifiable, Hashable {
             diameter: 3.4,
             fluteCount: 5,
             condition: .worn,
-            dateAdded: Calendar.current.date(byAdding: .month, value: -3, to: .now)!
+            dateAdded: Calendar.current.date(byAdding: .month, value: -3, to: .now)!,
+            notes: "Awesome tool"
         ),
         ToolData(
             name: "Wrench",
@@ -72,7 +84,8 @@ struct ToolData: Identifiable, Hashable {
             diameter: 6.85,
             fluteCount: 2,
             condition: .replace,
-            dateAdded: Calendar.current.date(byAdding: .month, value: -1, to: .now)!
+            dateAdded: Calendar.current.date(byAdding: .month, value: -1, to: .now)!,
+            notes: "Great tool, but needs a new bit"
         ),
         ToolData(
             name: "Impact Hammer",
@@ -80,7 +93,8 @@ struct ToolData: Identifiable, Hashable {
             diameter: 7.9,
             fluteCount: 9,
             condition: .worn,
-            dateAdded: Calendar.current.date(byAdding: .day, value: -10, to: .now)!
+            dateAdded: Calendar.current.date(byAdding: .day, value: -10, to: .now)!,
+            notes: "Fair tool"
         ),
     ]
 }

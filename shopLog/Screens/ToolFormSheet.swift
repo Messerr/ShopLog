@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-struct AddToolSheet: View {
+struct ToolFormSheet: View {
     @Bindable var draft: ToolDraft
     var onSave: (ToolDraft) -> Void
     @Environment(\.dismiss) var dismiss
+    var existingTool: ToolData?
     
     var body: some View {
         NavigationStack {
@@ -28,7 +29,7 @@ struct AddToolSheet: View {
                 }
                 Stepper("Flutes: \(draft.fluteCount)", value: $draft.fluteCount, in: 1...12)
             }
-            .navigationTitle("New Tool")
+            .navigationTitle(existingTool != nil ? "Edit Tool" : "New Tool")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -38,11 +39,21 @@ struct AddToolSheet: View {
                         .disabled(draft.name.isEmpty || draft.diameter <= 0)
                 }
             }
+            .onAppear {
+                if let tool = existingTool {
+                    draft.name = tool.name
+                    draft.type = tool.type
+                    draft.diameter = tool.diameter
+                    draft.fluteCount = tool.fluteCount
+                    draft.condition = tool.condition
+                    draft.notes = tool.notes
+                }
+            }
         }
     }
 }
 
 #Preview {
-    AddToolSheet(draft: ToolDraft(), onSave: { _ in })
+    ToolFormSheet(draft: ToolDraft(), onSave: { _ in })
         .environment(ToolStore())
 }
