@@ -7,9 +7,10 @@
 
 import SwiftUI
 import Charts
+import SwiftData
 
 struct TypeDistributionChart: View {
-    let tools: [ToolData]
+    let tools: [Tool]
     
     var body: some View {
         Chart(ToolType.allCases) { type in
@@ -27,5 +28,6 @@ struct TypeDistributionChart: View {
 }
 
 #Preview {
-    TypeDistributionChart(tools: ToolData.sampleData)
+    TypeDistributionChart(tools: [])
+        .modelContainer(for: Tool.self, inMemory: true)
 }

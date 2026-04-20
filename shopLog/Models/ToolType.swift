@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ToolType: CaseIterable, Identifiable, Hashable, Codable {
+enum ToolType: String, CaseIterable, Identifiable, Hashable, Codable {
     var id: Self { self }
     case endmill
     case drill

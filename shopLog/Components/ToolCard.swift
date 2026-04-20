@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ToolCard: View {
-    @Environment(ToolStore.self) var store
-    let tool: ToolData
+    let tool: Tool
     
     var body: some View {
         HStack(spacing: 14) {
@@ -30,9 +30,9 @@ struct ToolCard: View {
             ConditionBadge(condition: tool.condition)
             
             Button {
-                store.toggleFavorite(tool)
+                tool.isFavorite.toggle()
             } label: {
-                Image(systemName: store.isFavorite(tool) ? "heart.fill" : "heart")
+                Image(systemName: tool.isFavorite ? "heart.fill" : "heart")
             }
         }
         .padding(16)
@@ -44,13 +44,6 @@ struct ToolCard: View {
 }
 
 #Preview {
-    let store = ToolStore()
-    
-    VStack(spacing: 12) {
-    ToolCard(
-        tool: ToolData.sampleData[0]
-    )
-    }
-    .padding()
-    .environment(store)
+    ToolCard(tool: Tool(name: "Drill", type: .drill, diameter: 1.2, overhang: 7.5, fluteCount: 4))
+        .modelContainer(for: [Tool.self, Job.self], inMemory: true)
 }

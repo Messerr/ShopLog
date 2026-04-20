@@ -15,7 +15,7 @@ struct ContentView: View {
             Tab("Tools", systemImage: "wrench.and.screwdriver") {
                 NavigationStack(path: $path) {
                     ToolBrowserScreen()
-                        .navigationDestination(for: ToolData.self) { tool in
+                        .navigationDestination(for: Tool.self) { tool in
                             ToolDetailScreen(tool: tool)
                         }
                 }
@@ -29,5 +29,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environment(ToolStore())
 }

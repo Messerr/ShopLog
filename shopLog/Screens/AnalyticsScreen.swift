@@ -6,24 +6,25 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AnalyticsScreen: View {
-    @Environment(ToolStore.self) var store
+    @Query(sort: \Tool.name) private var tools: [Tool]
     
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 SectionCard(title: "Condition Breakdown", icon: "chart.bar") {
-                    ConditionChart(tools: store.tools)
+                    ConditionChart(tools: tools)
                 }
                 
                 SectionCard(title: "Tool Types", icon: "chart.pie") {
-                    TypeDistributionChart(tools: store.tools)
+                    TypeDistributionChart(tools: tools)
                 }
-                DashboardHeader(toolData: store.tools)
+                DashboardHeader(toolData: tools)
                 
                 SectionCard(title: "Trends", icon: "chart.line.uptrend.xyaxis") {
-                    TrendChart(tools: store.tools)
+                    TrendChart(tools: tools)
                 }
             }
             .padding()
@@ -33,5 +34,4 @@ struct AnalyticsScreen: View {
 
 #Preview {
     AnalyticsScreen()
-        .environment(ToolStore())
 }

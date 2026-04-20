@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 import Charts
 
 struct ConditionChart: View {
-    let tools: [ToolData]
+    let tools: [Tool]
     
     var counts: [(ToolCondition, Int)] {
         ToolCondition.allCases.map { c in
@@ -35,5 +36,6 @@ struct ConditionChart: View {
 }
 
 #Preview {
-    ConditionChart(tools: ToolData.sampleData)
+    ConditionChart(tools: [])
+        .modelContainer(for: Tool.self, inMemory: true)
 }

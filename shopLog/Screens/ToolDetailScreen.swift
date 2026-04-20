@@ -6,37 +6,48 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ToolDetailScreen: View {
-    @Environment(ToolStore.self) var store
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) var dismiss
     @State private var showEditSheet = false
     @State private var showDeleteConfirm = false
-    let tool: ToolData
+    let tool: Tool
     
     var body: some View {
-        let display = store.tools.first { $0.id == tool.id } ?? tool
-        
         ScrollView {
             VStack(spacing: 16) {
                 SectionCard(title: "Tool Info", icon: "wrench.and.screwdriver") {
-                    LabeledContent("Type", value: display.type.displayName)
-                    LabeledContent("Condition") { ConditionBadge(condition: display.condition) }
+                    LabeledContent("Type", value: tool.type.displayName)
+                    LabeledContent("Condition") { ConditionBadge(condition: tool.condition) }
                 }
                 SectionCard(title: "Dimensions", icon: "ruler") {
-                    LabeledContent("Diameter", value: "\(display.diameter)mm")
-                    LabeledContent("Flutes", value: "\(display.fluteCount)")
+                    LabeledContent("Diameter", value: "\(tool.diameter)mm")
+                    LabeledContent("Flutes", value: "\(tool.fluteCount)")
                 }
                 SectionCard(title: "Notes", icon: "note.text") {
-                    Text(display.notes)
+                    Text(tool.notes)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                SectionCard(title: "Job History", icon: "clock") {
+                    if tool.jobs.isEmpty {
+                        Text("No jobs recorded")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(tool.jobs) { job in
+                            JobRow(job: job)
+                        }
+                    }
+                    AddJobButton(tool: tool)
+                }
             }
             .padding()
         }
-        .navigationTitle(display.name)
+        .navigationTitle(tool.name)
         .toolbar {
             Menu {
                 Button("Edit") { showEditSheet = true }
@@ -49,15 +60,21 @@ struct ToolDetailScreen: View {
         }
         .sheet(isPresented: $showEditSheet) {
             ToolFormSheet(draft: ToolDraft(), onSave: { draft in
-                store.updateTool(display, from: draft)
-            }, existingTool: display)
+                tool.name = draft.name
+                tool.type = draft.type
+                tool.diameter = draft.diameter
+                tool.overhang = draft.overhang
+                tool.fluteCount = draft.fluteCount
+                tool.condition = draft.condition
+                tool.notes = draft.notes
+            }, existingTool: tool)
         }
-        .confirmationDialog("Delete \(display.name)?",
+        .confirmationDialog("Delete \(tool.name)?",
                             isPresented: $showDeleteConfirm,
                             titleVisibility: .visible
         ) {
             Button("Delete Tool", role: .destructive) {
-                store.deleteTool(tool)
+                context.delete(tool)
                 dismiss()
             }
         } message: {
@@ -66,6 +83,6 @@ struct ToolDetailScreen: View {
     }
 }
 #Preview {
-    ToolDetailScreen(tool: ToolData.sampleData[0])
-        .environment(ToolStore())
+    ToolDetailScreen(tool: Tool(name: "Drill", type: .drill, diameter: 1.2, overhang: 7.5, fluteCount: 4))
+        .modelContainer(for: [Tool.self, Job.self], inMemory: true)
 }

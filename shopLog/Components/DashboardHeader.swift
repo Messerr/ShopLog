@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct DashboardHeader: View {
-    let toolData: [ToolData]
+    let toolData: [Tool]
     let typeColors: [Color] = [.blue, .orange, .purple, .teal, .pink]
     
-    private var groupToolByType: [ToolType: [ToolData]] {
+    private var groupToolByType: [ToolType: [Tool]] {
         return Dictionary(grouping: toolData, by: \.type)
     }
     
@@ -36,5 +37,6 @@ struct DashboardHeader: View {
 }
 
 #Preview {
-    DashboardHeader(toolData: ToolData.sampleData)
+    DashboardHeader(toolData: [])
+        .modelContainer(for: Tool.self, inMemory: true)
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ToolCondition: Int, CaseIterable, Identifiable, Hashable {
+enum ToolCondition: Int, CaseIterable, Identifiable, Hashable, Codable {
     var id: Self { self }
     case new, good, fair, worn, replace
     

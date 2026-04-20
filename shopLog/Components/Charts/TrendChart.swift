@@ -7,9 +7,10 @@
 
 import SwiftUI
 import Charts
+import SwiftData
 
 struct TrendChart: View {
-    let tools: [ToolData]
+    let tools: [Tool]
     @State private var selectedMonth: Date?
 
     var monthlyData: [(Date, Int)] {
@@ -55,5 +56,6 @@ struct TrendChart: View {
 }
 
 #Preview {
-    TrendChart(tools: ToolData.sampleData)
+    TrendChart(tools: [])
+        .modelContainer(for: Tool.self, inMemory: true)
 }

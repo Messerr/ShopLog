@@ -6,15 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct shopLogApp: App {
-    @State private var store = ToolStore()
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(store)
+                .modelContainer(for: [Tool.self, Job.self])
         }
     }
 }

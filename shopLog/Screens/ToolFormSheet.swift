@@ -11,7 +11,7 @@ struct ToolFormSheet: View {
     @Bindable var draft: ToolDraft
     var onSave: (ToolDraft) -> Void
     @Environment(\.dismiss) var dismiss
-    var existingTool: ToolData?
+    var existingTool: Tool?
     @State private var hasAttemptedToSave = false
     
     var body: some View {
@@ -40,6 +40,7 @@ struct ToolFormSheet: View {
                     draft.fluteCount = tool.fluteCount
                     draft.condition = tool.condition
                     draft.notes = tool.notes
+                    draft.overhang = tool.overhang
                 }
             }
         }
@@ -48,5 +49,4 @@ struct ToolFormSheet: View {
 
 #Preview {
     ToolFormSheet(draft: ToolDraft(), onSave: { _ in })
-        .environment(ToolStore())
 }

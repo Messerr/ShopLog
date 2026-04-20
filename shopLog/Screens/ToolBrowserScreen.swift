@@ -6,25 +6,26 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ToolBrowserScreen: View {
-    @Environment(ToolStore.self) var store
+    @Query(sort: \Tool.name) private var tools: [Tool]
+    @Environment(\.modelContext) private var context
     @State private var showFavoriteOnly = false
     @State private var searchText = ""
     @State private var viewMode: ViewMode = .grid
     @State private var sortOrder: SortOrder = .name
     @State private var showAddSheet = false
     @State private var newDraft = ToolDraft()
-    @State private var loadState: LoadState<Void> = .idle
-    
-    var filteredTools: [ToolData] {
-        var result = searchText.isEmpty ? store.tools
-        : store.tools.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-        
+
+    var filteredTools: [Tool] {
+        var result = searchText.isEmpty ? tools
+        : tools.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+
         if showFavoriteOnly {
-            result = result.filter { store.isFavorite($0) }
+            result = result.filter { $0.isFavorite }
         }
-        
+
         return result.sorted {
             switch sortOrder {
             case .name: $0.name < $1.name
@@ -33,107 +34,73 @@ struct ToolBrowserScreen: View {
             }
         }
     }
-    
+
     var body: some View {
-            Group {
-                switch loadState {
-                case .idle, .loading:
-                    ProgressView("Loading tools...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                case .loaded:
-                    ScrollView {
-                        ShopLogHeader(
-                            title: "Tools",
-                            toolCount: filteredTools.count
-                        )
-                        
-                        ToolBrowserToolBar(viewMode: $viewMode, sortOrder: $sortOrder, showFavoritesOnly: $showFavoriteOnly)
-                        
-                        DashboardHeader(toolData: filteredTools)
-                        
-                        switch viewMode {
-                        case .grid:
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))]) {
-                                ForEach(filteredTools) { tool in
-                                    NavigationLink(value: tool) {
-                                        CompactToolCard(
-                                            tool: tool
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding()
-                        case .list:
-                            LazyVStack {
-                                ForEach(filteredTools) { tool in
-                                    NavigationLink(value: tool) {
-                                        ToolCard(
-                                            tool: tool
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding()
+        ScrollView {
+            ShopLogHeader(
+                title: "Tools",
+                toolCount: filteredTools.count
+            )
+
+            ToolBrowserToolBar(viewMode: $viewMode, sortOrder: $sortOrder, showFavoritesOnly: $showFavoriteOnly)
+
+            DashboardHeader(toolData: filteredTools)
+
+            switch viewMode {
+            case .grid:
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))]) {
+                    ForEach(filteredTools) { tool in
+                        NavigationLink(value: tool) {
+                            CompactToolCard(tool: tool)
                         }
+                        .buttonStyle(.plain)
                     }
-                case .error(let msg):
-                    ContentUnavailableView {
-                        Label("Load Failed", systemImage: "wifi.slash")
-                    } description: { Text(msg) }
-                    actions: {
-                        Button("Retry") {
-                            Task {
-                                await loadTools()
-                            }
+                }
+                .padding()
+            case .list:
+                LazyVStack {
+                    ForEach(filteredTools) { tool in
+                        NavigationLink(value: tool) {
+                            ToolCard(tool: tool)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding()
             }
-            .task {
-                await loadTools()
-            }
-            .refreshable {
-                await loadTools()
-            }
-            .searchable(text: $searchText, prompt: "Search tools...")
-            .sheet(isPresented: $showAddSheet) {
-                ToolFormSheet(draft: newDraft, onSave: { draft in
-                    let newTool = ToolData(from: draft)
-                    store.addTool(newTool)
-                    newDraft = ToolDraft()
-                })
-            }
-            .toolbar {
-                ToolbarItem {
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+        }
+        .searchable(text: $searchText, prompt: "Search tools...")
+        .sheet(isPresented: $showAddSheet) {
+            ToolFormSheet(draft: newDraft, onSave: { draft in
+                let newTool = Tool(
+                    name: draft.name,
+                    type: draft.type,
+                    diameter: draft.diameter,
+                    overhang: draft.overhang,
+                    fluteCount: draft.fluteCount,
+                    condition: draft.condition,
+                    notes: draft.notes
+                )
+                context.insert(newTool)
+                newDraft = ToolDraft()
+            })
+        }
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
                 }
-                ToolbarItem {
-                   ExportButton()
-                }
             }
-    }
-    
-    func loadTools() async {
-        loadState = .loading
-        do {
-            let tools = try await ShopLogAPI.fetchTools()
-            store.tools = tools
-            loadState = .loaded(())
-        } catch is CancellationError {
-            // ignore
-        } catch {
-            loadState = .error(error.localizedDescription)
+            ToolbarItem {
+                ExportButton(tools: filteredTools)
+            }
         }
     }
 }
 
 #Preview {
     ToolBrowserScreen()
-        .environment(ToolStore())
+        .modelContainer(for: [Tool.self, Job.self], inMemory: true)
 }

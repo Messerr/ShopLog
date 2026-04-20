@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CompactToolCard: View {
-    let tool: ToolData
+    let tool: Tool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -30,5 +31,6 @@ struct CompactToolCard: View {
 }
 
 #Preview {
-    CompactToolCard(tool: ToolData.sampleData[0])
+    CompactToolCard(tool: Tool(name: "Drill", type: .drill, diameter: 1.2, overhang: 7.5, fluteCount: 4))
+        .modelContainer(for: [Tool.self, Job.self], inMemory: true)
 }

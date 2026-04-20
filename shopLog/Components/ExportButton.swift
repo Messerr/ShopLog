@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ExportButton: View {
-    @Environment(ToolStore.self) var store
+    let tools: [Tool]
     @State private var exporter = ExportManager()
     @State private var showAlert = false
     
     var body: some View {
         Button {
             Task {
-                await exporter.exportAllTools(store.tools)
+                await exporter.exportAllTools(tools)
                 showAlert = true
             }
         } label: {
@@ -35,6 +35,5 @@ struct ExportButton: View {
 }
 
 #Preview {
-    ExportButton()
-        .environment(ToolStore())
+    ExportButton(tools: [])
 }
